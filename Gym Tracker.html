@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gym Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gym Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box} body{margin:0;background:#f4f5f6;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.h{position:sticky;top:0;background:white;padding:12px 14px;border-bottom:1px solid #e5e7eb;z-index:10}
+.tabs{display:flex;gap:6px;background:#f1f3f5;padding:5px;border-radius:14px;margin-top:8px}
+.tab{flex:1;padding:12px;border:0;border-radius:10px;font-weight:800;font-size:13px;background:transparent;color:#6b7280}
+.tab.active{background:#111;color:white}
+.card{background:white;margin:10px 12px;border-radius:18px;border:1px solid #e8eaed;overflow:hidden}
+.top{display:flex;gap:10px;padding:10px 12px;background:#fcfcfd;border-bottom:1px solid #f1f3f5;align-items:center}
+.pic{width:64px;height:64px;flex-shrink:0;background:white;border:1px solid #f0f0f0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.pic img{width:92%;height:92%;object-fit:contain}
+.title{flex:1;min-width:0}
+.n{font-weight:800;font-size:14px} .sub{font-size:11px;color:#888;margin-top:1px} .tip{font-size:10px;color:#666;background:#f3f4f6;display:inline-block;padding:2px 6px;border-radius:6px;margin-top:4px}
+.sets{padding:8px 12px}
+.srow{display:flex;gap:8px;align-items:center;margin:8px 0}
+.srow span{width:32px;font-size:12px;font-weight:700;color:#555}
+.srow input{flex:1;min-width:0;padding:13px 10px;border:1.6px solid #e5e7eb;border-radius:11px;font-size:16px;background:#fafafa}
+.srow input.filled{background:#e8f5e9;border-color:#2e7d32}
+.btn{width:calc(100% - 24px);margin:8px 12px 18px;padding:15px;background:#111;color:white;border-radius:12px;border:0;font-weight:800;font-size:14px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#111;color:white;padding:12px 22px;border-radius:99px;font-size:13px;display:none;z-index:99}
+</style>
+</head>
+<body>
+<div class="h">
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:16px">Gym Tracker <span style="font-weight:400;font-size:11px;color:#888">PWA</span></div><div id="saveState" style="font-size:11px;color:#2e7d32">● gespeichert</div></div>
+<div style="font-size:11px;color:#888;margin-top:2px">Offline • Speichert für immer • Männliche Zeichnungen</div>
+<div class="tabs">
+<button class="tab active" id="b1" onclick="tab('tag1')">TAG 1 (6)</button>
+<button class="tab" id="b2" onclick="tab('tag2')">TAG 2 (6)</button>
+<button class="tab" id="bv" onclick="tab('verlauf')">VERLAUF</button>
+</div>
+</div>
+
+<div id="tag1">
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAAGA0lEQVR42u1dR3LEMAwjPP7/l5GDmyolUcVOJj7tbrKOIDawyAHlb1yb/AP5B/IPRLv2by4L1wv+biC4AYC/GQj4J2wEoAhO9SKmSwRNKtxyUQQCcoWx48SA8WDAY4+wAsj9R+hZ5ih/Va1PvTbibxbHyoO2W269OAAZLI/IYNZ4LXK8oXsAsAjIzLA+2dgjdzLYbdlut722hYNvtX1VrzBftQg6IXGsPAjr7fZ+VaaN5Sm3xV9SrRVADgaB6JPfmerSXTxGmchiIIwoPH+rRDArjiwGwimhvcv3ba+v4G1j/9rVXUXBXwEyzmGlFRRTVatbDMAnbATCayk2O4cQBSxcoFo46gN2XwWK8CjEDRP63qFZ1jrQCSAgaBlYtTRutynWo+kdcnnZRuBmIrStZ4LPNhg7vWSRzauawwM6IzshNOwvx8PbOrXCiOS4keaCV7jfcCupOdJUE+1yWyONZe9VC0JzkXBLn1Td7BtxJGEqzMJGIjU+FwpL13MSkDu4Uf8FwImjV3+IFcaORUD0wAu5C26zc6/+toIOiEKyp/Uwrz+CQNyqTMZXVYeqFvuiFz4DpBYWMq95OuPTc9N101Y3vLXrbBQ4FIcF+B1snkzTeXtp33GZxbWPkEAm2z6XDM/RMrwXvJvCSrpsRWz06DlTgG4hh4Fz6lBNRBPPMO38VWSXgLsDcuz9WdvnKROrHzE2Q/2MnSm/zDEubF5kD5Q6vXJkGLH3IU8rKtKcuZFdC4RglUBahwImURQFiQYyaev5makVE3SsyKcio39s/ZEDXA17g/1SrWwhBpt5c+UmPTbSFxDTJt3cgifg5r31nHQc14qRoKDWTGo+s6qK+cYex0YA8JKPuMDydLYTq+7pcnezXwoeelHwOaCaDieRLFIteZLvQQVELlQtDmaMGotbl7MbksOqaVguATI2WfUxQYSG0viQgQHTgnO3Ng4jLFYtFhcX5vD4JBC0SWeFRHDGP4PZoELjVtnIQY3uEiJQs3NtgaZVtXa7ql8pNpykXUYUeWGZa9y7vM/RQmSYgWTRsAYqIYY22N7phOIS4R3zWCygGDRuFtdKZFZ0EkC2mwgDmS0hjZkEEXTSPjbf0yalfTgMp9V5dHqomkg6mWp363sPjPLG+XkXK3b8LjeuMXbkB8nBTDJcpy/w6/VzgSAyyYrshagjjWKrkJucn/YlMP/RHWLcSJQzPFxWxvley0AIik7psSqu8loz4bYbe8dsvI12l34OQKYbe0U60WhzYMnYZ0R2eB0p43hpCSwu74u2Pdnbdg+B2ba5r1oeetyXMyM7/RcI0Tw0S2gyEbGOcfXSeAlIO+KlaF0UKrq1lMY/eE5fc1fUzV0b4wm+YXHklALKmq0bD8Q58z8JCEy/hPxZrAwkUyDZGw1Cz6bZsZKOUpBJtVixSH8paKrsENdjK9zBiG9wLTwhGuWFEV5daVqGCF/RytWDJ+cNRZmejTBO3e3tmiU3gUjzlGQp6MkSCwkWZQFprONyajhEWedpOri0r7AQtjAUTCeNFkrmbnDYulWO8Dh29rLXCqIg6OxwIbLzm6p1B4NrxA+FBIA4u29AE1NZlLPT3WSqFsAr121zXatab6SfvmTLlIBtAH1boVmXIMhyhsVbt9qKQuvKQXSnn6gbeyvlXgrE4c1qZAeP7Gxpx6qDDyjGLq+lullmGSdVFEB9JAw+S1HSVEqbD6IbQF6N7CkFcofIC34OX1Gtvtkh+Kr1qtdyWgP5Ey7Kdy0RcZtvEe3iBGRNW8ElFHo0h5CNy4LQ0n6b5H7vOgjcM++VqRLcgzGmxKExTkuhwuXF55ZBGe9EDKb2EJN93cfzE9dT2Agt0UVwCKjD7fU8yxTRQSnnxcWXas5bxm+wBgiKz+Ll9UxSkAZ3ivbh4o7BM3WBTqWBMBhi82GfzumgqkDSXpU2MOAeIPmuQLi5bHzCMQStR8e2CYIggDBUtg1X80npJ6a6KEKhWwwxl124zEb0oQEGgcLYma/1XlMeGxOPxRgeAo62QsrU5+AZTrxG36a8KJE3rv9/2/EPZNL1A1GyfbdjwrmyAAAAAElFTkSuQmCC" alt="Brustpresse"></div>
+    <div class="title"><div class="n">Brustpresse</div><div class="sub">Chest Press • Brust • 3x10-12</div><div class="tip">Rücken anlehnen</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-1" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-1" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-1" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-1" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-1" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-1" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAAFGklEQVR42u1dy5KEIAykLf7/l3sPioKiQ0KCuqWXfdQOY5N00glxFgz/45rCB+QD8gH5gHxAbrii/qUIIQS+HggWDHgIGLD/deB7OVLcO/FaIDsbvNgiFdq/EcieFP/GIv8nIeLVQPBPLIIVCV4LZE4c5IO4bsSRB6TESX3jxc3fb5TYYwbuFaS5EmzfpdjjUL4GQVq4SZRaqF8X/ZuXBy3LPzWzzzgEAT4+FYfUxlM3P3w4wnJdOFkk3zA4ADnUO05AQKxc9K1z21efdKuTlAT5Aap0Uu8SCXgJRsXuTBocSMYA7jeFliM5t/mgomQS4+DTdK8KCA6h/SlIJjUNH3b4OHWz0M8k9LTISCSirsDkuEkdEDBLB0FXwELGe5hEvGOxlyIudqI8P00m+wRzdrhGLXjcsxWSSUpCpu88WaLwVQFHZgwIzxzDEUetpN6d4dCvHlmLNRLheWZRNrGH4BgtUZ5RWYmBAHA/WNcsH6UU4dOOqrSlbhIQrDoEXwWk3nYAaWUrDANS23oikPeNpZg2se8kj1H4RToeBV5rEXBu2jEEBGLtpA72stjpStwp30R4dKV/hZqOwrWZ0YHM9V2WaDYw3bZ2sAhzPpOX6oshAGvu5BNd68z3Wf8FV/AUeaxcqYw4Q9zQOBrHCMhvd2YWpW3ZYQqk5AjOnC7nGX+IOTey/6iqcBYyj1Ly3Djz4Qtvcq1lwGbd5x3Qk4ySGaeccEDgWLIjawheZQwGnOfGIg7Mf7WKA2/Xyo+lwZas9ytPZ64GdeE26WyxvDvt+kLMBvLIIVHr11g8O6STflf6ZHyzF0PyV8ToqAWjZFbKH90YgobsayObwXoWBasexTCLIPHdEoZ+tXjDe7qsGbUO0EAI4Y1B51MdQLJETbueSlFVguM40mq0xoA6I0iHSd6Hoc3BGEHcdyxwDKpH6iKQPazdFSDeh6HLu+DyjYCKVEKLQbJv6Q8EoF27uq4JXM9H9mnwYkqWlmxz4wiTkKiGFq2u7zdwVOCoaxMwdLSw2WvZyWbn1gZkXhMJk9ohFHrP/V4o8BsvoWvxrCfVhwP9QUM75L8fqWJ74nQJdOLBM660zshg4ladi0QRjv2wLBZ3Q7dJRlqkclM8urlJFqE8jkchjlp3uXgoZq/fqaEIgl89UvZlUThYWWcBms7WoWPsBOSkv4zKTRAGBb1rhYizA7YdQ5gZpeVZQliIr9hukOuWexGgs/1cAeD61Tujii0ikSgN/sJ55LHmGde3hl4xbD9Bx+p8MOdH5Uy8qMO1RHmNhUm4hQBmXR7zRCmYMhVGnPKRCSRLcZb6yIoXWkgvl+FMHkQlltMtbD8iB7xzujHdeEUmwFwYE0xDLIuFsMY6jAm/YhDckugyWVfLpTMcBB6nWRzDL8Xha/myednucyKWcoAclxBVJuF63syTwub8Qe/HNLEz56r1W8oJKIsnyV2ng6rbio3lpzC8Jug0dV4ySaH7mWomZEMPFgxxtQjmecdSb+aFDFIbyaIgbi+sVH5FbGZBWX4F2zn76MmQw7hmuPaoMTW7rj3NQnxUUFQ9Cwx4UNSaTVIK3qZjNQLOT4ZSzvd88O84NIehroWOsIgSxWENWpVWsZEb6gjZkLtpESVjy54ikB08USkQwrgbj97nV7VNrpwnBp/mBIa8BFJCUbcx2s95o4udbSQOJI86TSLODr0o2r42IDcdECaawOIW7/3kazT7A75/EvEB+YB8QD4gH5CO6w8EfwmYcc90RQAAAABJRU5ErkJggg==" alt="Rudermaschine"></div>
+    <div class="title"><div class="n">Rudermaschine</div><div class="sub">Seated Row • Rücken • 3x10-12</div><div class="tip">Zum Bauch ziehen</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-2" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-2" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-2" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-2" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-2" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-2" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,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" alt="Latzug"></div>
+    <div class="title"><div class="n">Latzug</div><div class="sub">Lat Pulldown • Rücken breit • 3x10-12</div><div class="tip">Zur Brust ziehen</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-3" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-3" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-3" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-3" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-3" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-3" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAAFSElEQVR42u1d2ZKcMAx0U/7/X+594LBlywODJY/ZYh+2kkmy0NbVLQkChv/xtYQXyAvkBfICeYEUX0D67naNAXUkXcPxastIHIF4MBBpBTwXCJu/eRYQfID1pt8XiJ+rPQdIyriAZ9aK42xB12gf7VoPzlqymuPfBPsL5AXyBvsPFM8Q0jiGxfsWRAhfgiuNj54wKExAVyeLToYIIRCgEOwPC0UE5r+E8C3Cy7sW+5OhyLU5Q2EIpFNXyNgi5YEXzrWGiUusLK44Ktbo1w8yPB0o2bXMXKt/eZjE7Gc2ohhUsHiQlegKYz8p7biMzRJ9YXw4feP6uJjAYLtZMmrYurhE2WEifKzpliUl2uNAlZlYGIrH53aFfjHCIbpXPKkY6Y/sCn3sDI/1prgd7GaM49hBtYcN8YkgZ7ejKvZFebKLdg+4lGkTsQRDwM283ANkP3yiCAnwWlbOiAsPKnaTxSxdfhUCySDJ+vXqkiHh6pW8L1qibca67+srBt5mlfGWHULOzJV75pcxlsXKXSTL10YgQwgA9lPnFzoWVUUEyqDjKNcC+SGBfkNLqPP/oen3mHVQJlA9eC5Qyu0scFutWChEnH5wJW91lvhokKwovEShJ+dnjMBOXv8tECLgaFxlLJdK++c7V+WGH4NihOmuA/b73r/juq7SRHFPi+VOjDCrd/nQto+RMxC4L8RuBTshefuaa7ZQKWrDddO0uhSe6XdDspM8UUn4SRLyhKQgjAWyHT03QFkR6FJ8Pf926bksAknuqkrcx5iZtBX7zSK91EjDN9VjZ6aRbo/fbdovXQZB00Rtt8d8QDJBB6EwTpLTjK4FbMIutIado7yts0FHGepnRnCMJ6dhaEZicolRtfMmA1JLdh7Kj+riHOcEokQFZDIokhontUjt78iqvUJpYY/G0CLayjV1LFR6DhO5FpLglbIVu43KrGW4PuCTtagRF1FnsBnLzCweQKgXDAoVmccQJwXSTgTUSAxNauNiH+eyalS9OigfYhYghUj9mjMaIFmcAuPkxiej8aUvrf0TjlC2PkD2EeIaAcPluhmQNJ/ZpnFwl1F+6RfMi8MPtLsFEOKYkziywl/oka3bqNolc0FTkWiVflFFNtfZTbVWsxFizrl49qGM44p+mQgI1DYEM71YJ4U5LcK8MmZ3q8Q9HexiB+RQGIniHrkYUqzMbZFdCCZUaj+bME5X1kBYhcCuCMHTfQADYPYWSYEOVp9NThoT82316h4EZJ1cleNMQDy+4MiHzR+7yFPUOpq7w3F+GyOUBYVKEx5XCMEEFCXtmhb9ObrHTLS1BogP092K/s/YMt3HIAyKKIEOy5KqRFvPOl1FfsobBvLZSCupcd6JVQhfaFz6iBP7Z3W1vKROQ23tspjbA23Z5UlX7NgvzjMqngDk/nFzMtdiT3qYL2sVd8gLf8vG4QyBrAt0ctUU4v00Cp8HjUwSTQ1QOxqa0Z4y3DQUBUo3pQLEfVO4KvQ285Rocv/ZgJ0yONLws9qG5d5q4S/1iF7hGErCyw/EhZZ8/uaPwLXeFMqFrtaKXX+j5b5rKYsyjfFCbiw0Qql3Ib0DCIpHLVrbgKybXQlTzib7oMQOGBmCwgK8om9Z+HZfpKCDWfBqUS9WhfJGd/pT9LWEHQkpRFtFXBNa64Vd7+Rxnr8iHD1gNqwJGyo85DW5oXxUR3nFEztvxx0IZNuhjIbMnfre9jQEiNhq3J6bEY/KGryxasiOAoKyOhvMMIyyCBsU03Y7Ykywa5rK+MKj1l+QMy+Pa47c43F9CR3e/7bjBfICeYE86usPG5tKNciifksAAAAASUVORK5CYII=" alt="Reverse Butterfly"></div>
+    <div class="title"><div class="n">Reverse Butterfly</div><div class="sub">Hintere Schulter • Schulter • 3x15</div><div class="tip">Arme auseinander</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-4" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-4" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-4" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-4" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-4" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-4" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAADkElEQVR42u1c23LlIAxDTP7/l7UP5MJp7mBjw+a8tNOmHcuSMBgCGEw/OPxpQVCTMQ4+R3f9iWGQzzBAjKVFCNjDA5A18sUs6FZaDJUI3DCSDVUcAQhPB+NOpIUQAIH/E72wMQIQkVmSMRAwVRJUg3FQRyBCymRMiJSyVKWFljmZFFEIicYUCMIimiswEESpJa01RJJNNBb1THxbJyQJ0a8jQMceyVINzn7pfanLRsr61uz1CyVZQnSAEExxgs3qe9RkJFVFdg7khgphZWkBATIi2G9l58+we5R8aUJaTFHAbj3SdCGiB+TJ7OqcpdIkTDqy2lq5fKksL01spJI+h4+TtYiCbSZxHNyIANstdaMGjpCIAHs1+zZPvJ5jaSAUHrWYfdN2EI6ihPDR6KMiuSgqLMPCGDV0VVUQHC512VBZgkCE4oMTRnAblVJ1iZKE/KygCgOmD0ZgMoWXBJLy/6DRcEeUF4+YDcFRkhCJB514pF4lcAikQ7MfCqasiLiRVlZL2B0jh3lmu6ouBeTPjiF69QgUnrQAstsiPKXk0Wai2fB7GR0eQnTAyCUOFmTbbPjlaYh/8w/VzatKIOBRHmEwgsVKYT3XjXLfsZIRbnsI+w2qfio7GMiL7RAUUGK3P8K1Bb+ecj/cE6Fnj8whMmA5MHeW98eHhCyGX2QtawI3p8Lhn5GZFmCNdjfswrfZfwXBg3M0KyJ69kiWd6y2z3+1PvCi3eViV5cXHmE/0jqfaLk/i3I7lVoeoH6VV2sHzRiIlw1hL10U4rCdQt/Suq8XRABeTebddBr/UNLqRLnaPnux6o08cqmtbczqjxG7jzyQnCTcd1rcmn2/Eu7jkD+ve3AMeImDbj3yspnl50zjLz2vE2zHCHZfUcqG6ajFPH4AtWXDUFrYFlWsX3zYHZdlyF877LwgGl93I7nUzQwO9nw2nhiDkRACBgHCYRjJuOEQQMBhGOkbCGhLSRxEWZ+0vBDhl5FhzjTy84iTjHoDgq+yf0A+IGMDWfdCBplr4ZPWB+QD8gH5v4DQDxDY/LX87LemC1xxYZ3CvSgVE3k3FxeDZN1tD+bSwny1S3q5Au2nKpOsy5GOlIf6TVEjIMnj6ZTpcj8NQo8XvDCQTNP55f0FNrX7JGj0ORIQpa8bVwhS6sqJo/fCWKbRsqBkgCwbuaz/16UZmER1lRscpWazldZPHKjzrSWQPQ2texD/AP3RJD3TTE26AAAAAElFTkSuQmCC" alt="Trizepsdrücken"></div>
+    <div class="title"><div class="n">Trizepsdrücken</div><div class="sub">Kabel • Trizeps • 3x12</div><div class="tip">Ellbogen fixieren</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-5" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-5" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-5" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-5" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-5" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-5" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAADs0lEQVR42u2cyXLEIAxEaRf//8udg1ewMAjwGFKaS5aZcni0dqiA7n+8FmcgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgHV5+hkXCOec4vSKAc1y/PH2Kw6tB4dv5QMLFP6AsM3E4OsypiKBASpTBFaHwG8wHgjK2CRRhOd8ylSDYcsrsJQrIZF70k1kW3YzO/r+qX8TGxJmr39WimA5aI4PgLD0A5ur4ZXgxdkGYi2gjpw6Ca22121W6xRoEBHLwBZ0DcRFkJxvRRyDGIqz5b3+Lz5XWACDYVodUfI0lIAb0kZ3CXUuobeHJlWE40zpXH2w6cTqEpg77HuO+CPChP5ff8J9TSJvJ4FfhD26cqIXQoZGzlBCLn0QtxCuQYq1UrUPEepjR+Z/sPBxxrELvldxJmB5s+d+4AddcwdIOPOE0+CAhQvBmVroRjmfw16YF1xbWAx/BNsPmk3j+dasKjKc8beHyZS228Lg77yjC2s0PeUMD+31jddt26jeC93zz6+ED0Mc4kzn8NyCAI2scGzcNdY/xnZ28KlrJIQDfgBzhRV9PE2CzPfq+FDlJqCLR4C2dOMiWDCie3uj8xPfAaG/ObnsPx7d9JBotodqZs2gqFK+HCJdPbXgp8h6sOvMFENz+ojDI6VvmoL9pnX0d0gMoVTVV5HbsDHKtFWr9OuMmaK3OBJCwIy24mFOw4UpvrzFWHyu6B1OgUYM4ArG7jCkQuPM4At0gKhqx5hKFZ+jTPTm/c2BKkl4xzzsxNbSl5eJPnJVmY5gLFDknxyU7rGUNa7FnB2x29vKegpWOi4YnaMMvK3y0RCAc2vQryDpVv0cblbdp5FNqo0SL2kDDmwgsmTUgX+lD+sNNJcrlvChrJWfuyaRoFgaEllx0v4yK01iYaEKi44JEQlNkVfEyKcSz3uw5O8JuiarOL95MaE3jdkS13z+5D1/lswUvZqFVZVYq28N5j+E74hvMgNhd++RjoBvggjVC5BPVdmfuiJBIpH6pRNmk1c6mOua56JDo2s4Rcuso+UjRbZzOCS0yFmlXwKdy2XfLTV1rDp4tEYXJjSDKvWh06FldN9JADh6Fzs4POBJVDos/vMR2iW0COoQmip5+ue8Ba8ZK76xO4ZCL8B7R3Xnffy3SnhCdTtC0PUFDhATFRukDSeDSPXZQfso1IBSt9NskfHYcPq5uoOuyaEq0sH/KaiAGYiAGYiAGYiAGYiAGYiAGYiAGYiAGYiATvv4AYbRQWN2g/1EAAAAASUVORK5CYII=" alt="Bauch / Plank"></div>
+    <div class="title"><div class="n">Bauch / Plank</div><div class="sub">Core • Bauch • 3x15-20</div><div class="tip">Bauch anspannen</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t1-6" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-6" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t1-6" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-6" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t1-6" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t1-6" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+<button class="btn" onclick="saveDay('tag1')">✓ TAG 1 speichern → Verlauf</button></div>
+<div id="tag2" style="display:none">
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,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" alt="Beinpresse"></div>
+    <div class="title"><div class="n">Beinpresse</div><div class="sub">Leg Press • Beine • 3x10-12</div><div class="tip">Füße hüftbreit</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-1" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-1" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-1" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-1" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-1" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-1" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAAFAElEQVR42u1cWXLrIBCkXdz/yv0+WARiGxASUh7+STlRgGamZ7dB9TdeP7WBbCAbyAaygWwgG8gGsoFsIBvIBrKBbCAbyAaygfxHQLT8USil1GvLYGAPDPPixyXiEeCNWOQcIRWglIIiQ/l8T7XohQHat18E4hUKBgpeRhZ0HMZJ4fj5IigiILBU9/oEKqtgr4HSBuJ0CBESZaF0iXQlkIMZSinFg+MeykuQVI4ReHIEaBhRBnw5EET+TzGgBdUJyg2n6g8h8sew7sItBzphnFXpHrYHCsBLQAyvQzqYu7frM2OS79IS8U3lgIDx8bwYwETu8xXrfDVCKDqLg+XQ14GAI830F9O9BLv8JDgyaxvlwzPWhxgAgsxS5siwnGcA7j0hyq+SdUS5FHC+IAK8XSAAIFItXcTBwHWDOWrziaxE6ql0UR+NFpm3sfktmYCbcIymuom/g6N2EHE9GnlwTLViUJ4HawJd+Za/pmgP0p8lcScumPqAfAstIduSWBbW3Ai3l1RRiCfNlDc07BL9m0um1nVRdH8iIE+KJKAGe0io3ycH477Yz6qux0B1KqZMzQmDJIh9p9QD9mS63Q1TDjAhOO5QrRtYcsqcMrfPiUD88qH2zqigICpyCE3UhRgAzOWil4Fk8tpEALJNllqttHIRxRFd1zTgEMPuyBXGIBRtsDwxUNYa8ux9sUMRBktBiLuprsDx10FKNUUQiTTS9Wj9OwlgMtkLDmqM7e1SFSLRcBnZqy1gQcUN8ZOScuYYkLoDiRw1ctmzzJrhsMdtyes7pMEoEiCOXopITcIoxVU9mkjkQGR0QKYsaZ0DyxpSjhBNGVBQ29JybcpsHfn7mkXuKEtma6ZtOzmYITKuEzgrydphIVoObS98lSOFVkp0Elb+ibL1OWa0tRrULbP0ySbVFbmh5mxZ2eq8hb5kntLgonZ8VtvZaEUMrGZDXZMPTOPtZnubXTtW2oZg1TUOS2Q4XqxqkClslslYFskgkN4YK3y+qupgElGGN4fZHGG3GE5ernAi0Fx7omJoBd36Tjl034TnARhFaYchKA5W6j7tHj+45BIQCMVUIZJ4Ab6h/GzOjh4kSFxSvjKUvdDfvKM2ZYI2DrRYiMmx1ggV6iUrgPRzkwM9/D7Vush21oaRrOOm94pRS3wukNyVcoaxcn8gfPoV1JjdaCsmZogDEY10Rs/JzPT0kVo8zJAIBpBQIDJkfpFxFWAzJ9FCFOwpHqigN38uqKAVeAwOHWnJoc7hRUXjcdYZqHY23PQxnKH0z3RykzHc5CqDcd1Bz/7EvAOkWlG8+He1pw+PmAlM6m7lfV3dQgkD18n+tEBKWSWumt+nx7IyNBBI5PcKrrf2IMDrJdO7xmITCaC4FdrtuG98DtGOImJCPoKnqI5imUixNnQh7rM/ZXbBQoCM+jNaLFyq+R9OkI6l0/Z6ptR+nxnNLH0MxM1WTghRVk6Pm3S+ypFfBxeXCcSP5VdO8YYQBRKOsFFOegOQdlJv6o5Vsn/kg/nALIe4WGJth9hptbgIiSlvYx7ZMdl4gaI818Zb18L4e81v7xzTrI7VOq+IoHvyXc9uvLsiP29+XZ6oUKJp33c+rPzOiqjgygsc4VoNQziqgs45hJwRXOjdg652emz9GbI3hm4+RfYaRz/1bU50nVKsSmCn5y78PJC/oVobyAaygWwgG8gGsoFsIBvImtc/6QkaWBPTmu4AAAAASUVORK5CYII=" alt="Beinbeuger"></div>
+    <div class="title"><div class="n">Beinbeuger</div><div class="sub">Leg Curl • Beine hinten • 3x12</div><div class="tip">Fersen zum Gesäß</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-2" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-2" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-2" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-2" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-2" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-2" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,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" alt="Brustpresse leicht"></div>
+    <div class="title"><div class="n">Brustpresse leicht</div><div class="sub">Leicht • Brust • 3x12</div><div class="tip">Technik Fokus</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-3" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-3" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-3" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-3" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-3" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-3" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAAFGklEQVR42u1dy5KEIAykLf7/l3sPioKiQ0KCuqWXfdQOY5N00glxFgz/45rCB+QD8gH5gHxAbrii/qUIIQS+HggWDHgIGLD/deB7OVLcO/FaIDsbvNgiFdq/EcieFP/GIv8nIeLVQPBPLIIVCV4LZE4c5IO4bsSRB6TESX3jxc3fb5TYYwbuFaS5EmzfpdjjUL4GQVq4SZRaqF8X/ZuXBy3LPzWzzzgEAT4+FYfUxlM3P3w4wnJdOFkk3zA4ADnUO05AQKxc9K1z21efdKuTlAT5Aap0Uu8SCXgJRsXuTBocSMYA7jeFliM5t/mgomQS4+DTdK8KCA6h/SlIJjUNH3b4OHWz0M8k9LTISCSirsDkuEkdEDBLB0FXwELGe5hEvGOxlyIudqI8P00m+wRzdrhGLXjcsxWSSUpCpu88WaLwVQFHZgwIzxzDEUetpN6d4dCvHlmLNRLheWZRNrGH4BgtUZ5RWYmBAHA/WNcsH6UU4dOOqrSlbhIQrDoEXwWk3nYAaWUrDANS23oikPeNpZg2se8kj1H4RToeBV5rEXBu2jEEBGLtpA72stjpStwp30R4dKV/hZqOwrWZ0YHM9V2WaDYw3bZ2sAhzPpOX6oshAGvu5BNd68z3Wf8FV/AUeaxcqYw4Q9zQOBrHCMhvd2YWpW3ZYQqk5AjOnC7nGX+IOTey/6iqcBYyj1Ly3Djz4Qtvcq1lwGbd5x3Qk4ySGaeccEDgWLIjawheZQwGnOfGIg7Mf7WKA2/Xyo+lwZas9ytPZ64GdeE26WyxvDvt+kLMBvLIIVHr11g8O6STflf6ZHyzF0PyV8ToqAWjZFbKH90YgobsayObwXoWBasexTCLIPHdEoZ+tXjDe7qsGbUO0EAI4Y1B51MdQLJETbueSlFVguM40mq0xoA6I0iHSd6Hoc3BGEHcdyxwDKpH6iKQPazdFSDeh6HLu+DyjYCKVEKLQbJv6Q8EoF27uq4JXM9H9mnwYkqWlmxz4wiTkKiGFq2u7zdwVOCoaxMwdLSw2WvZyWbn1gZkXhMJk9ohFHrP/V4o8BsvoWvxrCfVhwP9QUM75L8fqWJ74nQJdOLBM660zshg4ladi0QRjv2wLBZ3Q7dJRlqkclM8urlJFqE8jkchjlp3uXgoZq/fqaEIgl89UvZlUThYWWcBms7WoWPsBOSkv4zKTRAGBb1rhYizA7YdQ5gZpeVZQliIr9hukOuWexGgs/1cAeD61Tujii0ikSgN/sJ55LHmGde3hl4xbD9Bx+p8MOdH5Uy8qMO1RHmNhUm4hQBmXR7zRCmYMhVGnPKRCSRLcZb6yIoXWkgvl+FMHkQlltMtbD8iB7xzujHdeEUmwFwYE0xDLIuFsMY6jAm/YhDckugyWVfLpTMcBB6nWRzDL8Xha/myednucyKWcoAclxBVJuF63syTwub8Qe/HNLEz56r1W8oJKIsnyV2ng6rbio3lpzC8Jug0dV4ySaH7mWomZEMPFgxxtQjmecdSb+aFDFIbyaIgbi+sVH5FbGZBWX4F2zn76MmQw7hmuPaoMTW7rj3NQnxUUFQ9Cwx4UNSaTVIK3qZjNQLOT4ZSzvd88O84NIehroWOsIgSxWENWpVWsZEb6gjZkLtpESVjy54ikB08USkQwrgbj97nV7VNrpwnBp/mBIa8BFJCUbcx2s95o4udbSQOJI86TSLODr0o2r42IDcdECaawOIW7/3kazT7A75/EvEB+YB8QD4gH5CO6w8EfwmYcc90RQAAAABJRU5ErkJggg==" alt="Rudermaschine"></div>
+    <div class="title"><div class="n">Rudermaschine</div><div class="sub">Seated Row • Rücken • 3x12</div><div class="tip">Schulterblätter zusammen</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-4" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-4" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-4" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-4" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-4" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-4" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAADtklEQVR42u1d25aDIAzMcPz/X559AFpsbS2YEHDxwQdPXR2SmVxAFpR7HEEWkLGO7Yff4OAaZwQiFBGksxAiBEZD0vpCwwFp5AgWRzyBMHlSPoEDWiT8yghAON7rV6qWusIYeOfPQKjGcCQIUMUSasZQhetgupmqVPvRIkQ+lcjY7FbFX+3sWjyM9i1IWAjIAAGRl0eUunRvz34xlhiHahcH2gkiCiRTiSNJMQEBpdnHIcIk53R3LeIZEOpvjmNAKspWqKeoiFBAEQrqiRJHIA8BnVwry9VDd9PQ1mJ53A81KNsFtpKZMzVguHt5elmEn0vhn1+LFnVmm2sJhDwAA3ErubZqppYZxgEYcQKz1XoWihf+6mc8a1vAMSA+sXx/iS+kgVEfxq5CPCYNhDadJNtS9400EIFi8OhbsxekSeE0QtHF06n5kMGAKcEBY2NmgHqkAQwpACBCJCHHbBZ5Iw0IIRSb4R59raxnqiWm20QPySRi81ok58BMCiZUULDNzSI5tPM5fVRGf84CJBUmsfMXUwAUbYDq+N+ZIzjK2iJjsgSQbPGz0N0KH6u0CCbGf1Y3/7q6FvjiMvtORCznG5P7ras5wOOSHafV9GBkJ4RH0by80Bjse3OEIidtucYGpktk50lfDw0F5NYXAItR52d5xugc2bECb1VwSf6ZIrsA2TQvSQnnscg+zeL1qsR9vRZFA8ZaQaeSan2+tiyygCwg6iTpC8RwJaRnqTszEJ5emJQjmNMilouFl/yO5lsjWEQlkHQFQrOUsW9hBTPt7V4hvtToEFGbrd78XIvzxpEK7kwaRzAXENOvHcawCO8AhDpzu+EmFBkBiM6Su+BuCOioQBjBHhrB3bGJnT7dUCq3vLNftdQxOLBilbrjALHrBjm6Fqjqasu1/j1HrD6W2/pzBLRQ496RvSjUvb9WuC6/+TMtcGKy4zXXml211Cm/5HeAfoMnELupnuBGEWVM4Sae5TSrq28QrzSeXhwZeY+aCiCYYKM6n3l2Tg7E0lHDTShylsZjGihn9QitWM/OQGD0dNDTIlf9i/dZQefHEdwFiAXZTRzMi+y+FlH0My6ODGaRyeWXdinPP5Vfi9pkZvmFARInshNzN7GTKRg/v0dHi6gveotbIuS9+Dpupkcw75933RXw3Ns1772jRjxQQ3NZ+bDd5lQ6XNk0lLEBOB5TiOjjWmYxXh4z1YYrsY3COV44obrHVs9u6HMzbOo/vmtbFztp0N0o16M/DYtMDus/wiwgNscfLeNQY9z6s3gAAAAASUVORK5CYII=" alt="Außenrotation"></div>
+    <div class="title"><div class="n">Außenrotation</div><div class="sub">Kabel/Band • Rotatoren • 2-3x15</div><div class="tip">Ellbogen 90°</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-5" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-5" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-5" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-5" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-5" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-5" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div class="pic"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAAAAAA79ejwAAADs0lEQVR42u2cyXLEIAxEaRf//8udg1ewMAjwGFKaS5aZcni0dqiA7n+8FmcgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgBmIgHV5+hkXCOec4vSKAc1y/PH2Kw6tB4dv5QMLFP6AsM3E4OsypiKBASpTBFaHwG8wHgjK2CRRhOd8ylSDYcsrsJQrIZF70k1kW3YzO/r+qX8TGxJmr39WimA5aI4PgLD0A5ur4ZXgxdkGYi2gjpw6Ca22121W6xRoEBHLwBZ0DcRFkJxvRRyDGIqz5b3+Lz5XWACDYVodUfI0lIAb0kZ3CXUuobeHJlWE40zpXH2w6cTqEpg77HuO+CPChP5ff8J9TSJvJ4FfhD26cqIXQoZGzlBCLn0QtxCuQYq1UrUPEepjR+Z/sPBxxrELvldxJmB5s+d+4AddcwdIOPOE0+CAhQvBmVroRjmfw16YF1xbWAx/BNsPmk3j+dasKjKc8beHyZS228Lg77yjC2s0PeUMD+31jddt26jeC93zz6+ED0Mc4kzn8NyCAI2scGzcNdY/xnZ28KlrJIQDfgBzhRV9PE2CzPfq+FDlJqCLR4C2dOMiWDCie3uj8xPfAaG/ObnsPx7d9JBotodqZs2gqFK+HCJdPbXgp8h6sOvMFENz+ojDI6VvmoL9pnX0d0gMoVTVV5HbsDHKtFWr9OuMmaK3OBJCwIy24mFOw4UpvrzFWHyu6B1OgUYM4ArG7jCkQuPM4At0gKhqx5hKFZ+jTPTm/c2BKkl4xzzsxNbSl5eJPnJVmY5gLFDknxyU7rGUNa7FnB2x29vKegpWOi4YnaMMvK3y0RCAc2vQryDpVv0cblbdp5FNqo0SL2kDDmwgsmTUgX+lD+sNNJcrlvChrJWfuyaRoFgaEllx0v4yK01iYaEKi44JEQlNkVfEyKcSz3uw5O8JuiarOL95MaE3jdkS13z+5D1/lswUvZqFVZVYq28N5j+E74hvMgNhd++RjoBvggjVC5BPVdmfuiJBIpH6pRNmk1c6mOua56JDo2s4Rcuso+UjRbZzOCS0yFmlXwKdy2XfLTV1rDp4tEYXJjSDKvWh06FldN9JADh6Fzs4POBJVDos/vMR2iW0COoQmip5+ue8Ba8ZK76xO4ZCL8B7R3Xnffy3SnhCdTtC0PUFDhATFRukDSeDSPXZQfso1IBSt9NskfHYcPq5uoOuyaEq0sH/KaiAGYiAGYiAGYiAGYiAGYiAGYiAGYiAGYiATvv4AYbRQWN2g/1EAAAAASUVORK5CYII=" alt="Bauch / Plank"></div>
+    <div class="title"><div class="n">Bauch / Plank</div><div class="sub">Core • Bauch • 3x15-20</div><div class="tip">Gerade halten</div></div>
+  </div>
+  <div class="sets">
+    <div class="srow"><span>S1</span><input data-id="t2-6" data-s="0" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-6" data-s="0" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S2</span><input data-id="t2-6" data-s="1" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-6" data-s="1" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+    <div class="srow"><span>S3</span><input data-id="t2-6" data-s="2" data-f="kg" type="number" step="0.5" inputmode="decimal" placeholder="kg"><input data-id="t2-6" data-s="2" data-f="wdh" type="number" inputmode="numeric" placeholder="Wdh"></div>
+  </div>
+</div>
+<button class="btn" onclick="saveDay('tag2')">✓ TAG 2 speichern → Verlauf</button></div>
+<div id="verlauf" style="display:none"><div id="hlist" style="padding:12px"></div><button class="btn" style="background:white;color:#111;border:1.5px solid #ddd" onclick="if(confirm('Wirklich alles löschen?')){localStorage.clear();location.reload();}">🗑️ Alles löschen</button></div>
+
+<div id="toast"></div>
+
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
+var store={}; var hist=[];
+try{ store=JSON.parse(localStorage.getItem('gym-pwa')||'{}'); }catch(e){ store={}; }
+try{ hist=JSON.parse(localStorage.getItem('gym-pwa-h')||'[]'); }catch(e){ hist=[]; }
+function persist(){ localStorage.setItem('gym-pwa', JSON.stringify(store)); localStorage.setItem('gym-pwa-h', JSON.stringify(hist)); }
+function toast(t){ var el=document.getElementById('toast'); el.innerText=t; el.style.display='block'; setTimeout(function(){el.style.display='none'},1300); }
+document.querySelectorAll('input[data-id]').forEach(function(inp){
+  var id=inp.getAttribute('data-id'); var s=inp.getAttribute('data-s'); var f=inp.getAttribute('data-f');
+  if(store[id] && store[id][s] && store[id][s][f]){ inp.value=store[id][s][f]; if(inp.value) inp.classList.add('filled'); }
+  inp.addEventListener('input', function(){
+    if(!store[id]) store[id]=[{},{},{}]; if(!store[id][s]) store[id][s]={};
+    store[id][s][f]=this.value;
+    if(this.value) this.classList.add('filled'); else this.classList.remove('filled');
+    persist(); if(this.value) toast('✓ gespeichert');
+  });
+});
+function tab(which){
+  document.getElementById('tag1').style.display=which=='tag1'?'block':'none';
+  document.getElementById('tag2').style.display=which=='tag2'?'block':'none';
+  document.getElementById('verlauf').style.display=which=='verlauf'?'block':'none';
+  document.getElementById('b1').className='tab'+(which=='tag1'?' active':'');
+  document.getElementById('b2').className='tab'+(which=='tag2'?' active':'');
+  document.getElementById('bv').className='tab'+(which=='verlauf'?' active':'');
+  if(which=='verlauf') renderHist();
+}
+function saveDay(which){
+  var ids = which=='tag1' ? ['t1-1','t1-2','t1-3','t1-4','t1-5','t1-6'] : ['t2-1','t2-2','t2-3','t2-4','t2-5','t2-6'];
+  var data={}; ids.forEach(function(id){ data[id]=store[id]; });
+  hist.unshift({date:new Date().toISOString(), day:which, data:data});
+  persist(); toast('✓ '+which.toUpperCase()+' im Verlauf'); tab('verlauf');
+}
+function renderHist(){
+  var el=document.getElementById('hlist');
+  if(hist.length==0){ el.innerHTML='<div style="text-align:center;color:#888;padding:30px">Noch kein Verlauf<br><span style="font-size:11px">Drücke nach dem Training auf Speichern</span></div>'; return; }
+  var h='';
+  hist.forEach(function(entry,i){
+    var d=new Date(entry.date); var ds=d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    h+='<div style="background:white;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">'+entry.day.toUpperCase()+' • '+ds+'</b><button onclick="delH('+i+')" style="border:0;background:#f1f3f5;border-radius:8px;padding:4px 10px;font-size:11px">Löschen</button></div>';
+    Object.keys(entry.data).forEach(function(k){
+      var sets=entry.data[k]; if(!sets) return; var has=sets.some(function(s){return s&& (s.kg||s.wdh);}); if(!has) return;
+      h+='<div style="font-size:12px;margin-top:6px"><b>'+k+':</b> '+sets.map(function(s){return (s&&s.kg?s.kg:0)+'kg x '+(s&&s.wdh?s.wdh:0);}).join(' | ')+'</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function delH(i){ if(confirm('Diesen Verlauf löschen?')){ hist.splice(i,1); persist(); renderHist(); } }
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
